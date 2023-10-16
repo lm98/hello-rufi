@@ -1,0 +1,94 @@
+use std::any::Any;
+use std::collections::HashMap;
+use std::iter;
+use std::rc::Rc;
+use rufi_core::core::context::context::Context;
+use rufi_core::core::export::export::Export;
+use rufi_core::core::lang::builtins::{foldhood_plus, mux};
+use rufi_core::core::lang::execution::round;
+use rufi_core::core::lang::lang::{foldhood, nbr, rep};
+use rufi_core::core::sensor_id::sensor_id::{sensor, SensorId};
+use rufi_core::core::vm::round_vm::round_vm::RoundVM;
+
+fn gradient(vm: RoundVM) -> (RoundVM, f64) {
+    fn is_source(vm: RoundVM) -> (RoundVM, bool) {
+        let val = vm.local_sense::<bool>(&sensor("source")).unwrap().clone();
+        (vm, val)
+    }
+
+    rep(
+        vm,
+        |vm1| (vm1, f64::INFINITY),
+        |vm2, d| {
+            mux(
+                vm2,
+                is_source,
+                |vm4| {
+                    (vm4, 0.0 )
+                },
+                |vm5| {
+                    foldhood_plus(
+                        vm5,
+                        |vm6| (vm6, f64::INFINITY),
+                        |a, b| a.min(b),
+                        |vm7| {
+                            let (vm_, val) = nbr(vm7, |vm8| (vm8, d));
+                            (vm_, val + 1.0)
+                        }
+                    )
+                }
+            )
+        }
+    )
+}
+
+#[derive(Debug, Clone)]
+struct DeviceState {
+    self_id: i32,
+    exports: HashMap<i32, Export>,
+    local_sensor: HashMap<SensorId, Rc<Box<dyn Any>>>,
+    nbr_sensor: HashMap<SensorId, HashMap<i32, Rc<Box<dyn Any>>>>,
+}
+
+impl DeviceState {
+    fn update_exports(&mut self, nbr: i32, export: Export) {
+        self.exports.insert(nbr, export);
+    }
+}
+
+fn main() {
+    // 1--2--3--4--5
+    let devices = vec![1, 2, 3, 4, 5];
+    let mut states: HashMap<i32, DeviceState> = devices.iter().map(|d|{
+        let nbrs: Vec<i32> = vec![d.clone()-1, d.clone(), d.clone()+1].into_iter().filter(|n| (n > &0 && n < &6)).collect();
+        let local_sensor: HashMap<SensorId, Rc<Box<dyn Any>>> = vec![(sensor("source"), Rc::new(Box::new(*d == 2) as Box<dyn Any>))].into_iter().collect();
+        let nbr_sensor: HashMap<SensorId, HashMap<i32, Rc<Box<dyn Any>>>> = HashMap::from([(sensor("nbr_range"), nbrs.iter().map(|n| (n.clone(), Rc::new(Box::new(i32::abs(d - n)) as Box<dyn Any>))).collect())]);
+        let state = DeviceState{
+            self_id: d.clone(),
+            exports: HashMap::new(),
+            local_sensor,
+            nbr_sensor,
+        };
+        (d.clone(), state)
+    }).collect();
+
+    let scheduling: Vec<i32> = iter::repeat(devices).take(5).flatten().collect();
+
+    for d in scheduling {
+        let curr = states.get(&d).unwrap().clone();
+        let ctx = Context::new(d, curr.local_sensor, curr.nbr_sensor, curr.exports);
+        println!("RUN: DEVICE {}\n\tCONTEXT {:?}", d, ctx);
+        let mut vm = RoundVM::new(ctx);
+        vm.export_stack.push(Export::new());
+        let (mut vm_, res) = round(vm, gradient);
+        let mut to_update = states.get(&d).unwrap().clone();
+        to_update.update_exports(d, vm_.export_data().clone());
+        to_update.nbr_sensor.get(&sensor("nbr_range")).unwrap().keys().for_each(|nbr| {
+            let mut nbr_state = states.get(nbr).unwrap().clone();
+            nbr_state.update_exports(d, to_update.exports.get(&d).unwrap().clone());
+            states.insert(nbr.clone(), nbr_state);
+        });
+        states.insert(d, to_update);
+        println!("\t EXPORT: {:?}\n\t OUTPUT: {:?}\n\t", states.get(&d).unwrap().exports.get(&d).unwrap(), res);
+    }
+}
