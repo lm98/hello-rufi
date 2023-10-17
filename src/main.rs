@@ -1,63 +1,18 @@
+extern crate hello_rufi;
+
 use std::any::Any;
 use std::collections::HashMap;
 use std::iter;
 use std::rc::Rc;
 use rufi_core::core::context::context::Context;
 use rufi_core::core::export::export::Export;
-use rufi_core::core::lang::builtins::{foldhood_plus, mux};
 use rufi_core::core::lang::execution::round;
-use rufi_core::core::lang::lang::{foldhood, nbr, rep};
 use rufi_core::core::sensor_id::sensor_id::{sensor, SensorId};
 use rufi_core::core::vm::round_vm::round_vm::RoundVM;
-
-fn gradient(vm: RoundVM) -> (RoundVM, f64) {
-    fn is_source(vm: RoundVM) -> (RoundVM, bool) {
-        let val = vm.local_sense::<bool>(&sensor("source")).unwrap().clone();
-        (vm, val)
-    }
-
-    rep(
-        vm,
-        |vm1| (vm1, f64::INFINITY),
-        |vm2, d| {
-            mux(
-                vm2,
-                is_source,
-                |vm4| {
-                    (vm4, 0.0 )
-                },
-                |vm5| {
-                    foldhood_plus(
-                        vm5,
-                        |vm6| (vm6, f64::INFINITY),
-                        |a, b| a.min(b),
-                        |vm7| {
-                            let (vm_, val) = nbr(vm7, |vm8| (vm8, d));
-                            (vm_, val + 1.0)
-                        }
-                    )
-                }
-            )
-        }
-    )
-}
-
-#[derive(Debug, Clone)]
-struct DeviceState {
-    self_id: i32,
-    exports: HashMap<i32, Export>,
-    local_sensor: HashMap<SensorId, Rc<Box<dyn Any>>>,
-    nbr_sensor: HashMap<SensorId, HashMap<i32, Rc<Box<dyn Any>>>>,
-}
-
-impl DeviceState {
-    fn update_exports(&mut self, nbr: i32, export: Export) {
-        self.exports.insert(nbr, export);
-    }
-}
+use hello_rufi::device_state::DeviceState;
+use hello_rufi::gradient::gradient;
 
 fn main() {
-    // 1--2--3--4--5
     let devices = vec![1, 2, 3, 4, 5];
     let mut states: HashMap<i32, DeviceState> = devices.iter().map(|d|{
         let nbrs: Vec<i32> = vec![d.clone()-1, d.clone(), d.clone()+1].into_iter().filter(|n| (n > &0 && n < &6)).collect();
