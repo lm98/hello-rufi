@@ -36,29 +36,39 @@ fn add_source(topology: &mut Topology, source: i32) {
     topology.states.insert(source, source_state);
 }
 
-fn run_on_topology<A: Copy + 'static, F>(program: F, mut topology: Topology, scheduling: &Vec<i32>) -> Topology
+fn run_on_device<A, F: Copy>(program: F, mut topology: Topology, d: i32) -> Topology
     where
-        F: Fn(RoundVM) -> (RoundVM, A) + Copy
+        F: Fn(RoundVM) -> (RoundVM, A),
+        A: Copy + 'static
+{
+    // Setup the VM
+    let curr = topology.states.get(&d).unwrap().clone();
+    let ctx = Context::new(d, curr.local_sensor, curr.nbr_sensor, curr.exports);
+    let mut vm = RoundVM::new(ctx);
+    vm.export_stack.push(Export::new());
+    // Run the program
+    let (mut vm_, _res) = round(vm, program);
+    // Update the topology with the new exports
+    let mut to_update = topology.states.get(&d).unwrap().clone();
+    to_update.update_exports(d, vm_.export_data().clone());
+    // Update the exports of the neighbors, simulating the message passing
+    to_update.nbr_sensor.get(&sensor("nbr_range")).unwrap().keys().for_each(|nbr| {
+        let mut nbr_state = topology.states.get(nbr).unwrap().clone();
+        nbr_state.update_exports(d, to_update.exports.get(&d).unwrap().clone());
+        topology.states.insert(nbr.clone(), nbr_state);
+    });
+    topology.states.insert(d, to_update);
+    topology
+}
+
+fn run_on_topology<A, F>(program: F, mut topology: Topology, scheduling: &Vec<i32>) -> Topology
+    where
+        F: Fn(RoundVM) -> (RoundVM, A) + Copy,
+        A: Copy + 'static
 {
     // For each device in the provided scheduling, run the program on the device.
-    for d in scheduling.clone() {
-        // Setup the VM
-        let curr = topology.states.get(&d).unwrap().clone();
-        let ctx = Context::new(d, curr.local_sensor, curr.nbr_sensor, curr.exports);
-        let mut vm = RoundVM::new(ctx);
-        vm.export_stack.push(Export::new());
-        // Run the program
-        let (mut vm_, _res) = round(vm, program);
-        // Update the topology with the new exports
-        let mut to_update = topology.states.get(&d).unwrap().clone();
-        to_update.update_exports(d, vm_.export_data().clone());
-        // Update the exports of the neighbors, simulating the message passing
-        to_update.nbr_sensor.get(&sensor("nbr_range")).unwrap().keys().for_each(|nbr| {
-            let mut nbr_state = topology.states.get(nbr).unwrap().clone();
-            nbr_state.update_exports(d, to_update.exports.get(&d).unwrap().clone());
-            topology.states.insert(nbr.clone(), nbr_state);
-        });
-        topology.states.insert(d, to_update);
+    for d in scheduling {
+        topology = run_on_device(program, topology, d.clone());
     }
     topology
 }
