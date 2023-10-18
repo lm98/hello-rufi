@@ -1,7 +1,7 @@
 use rufi_core::core::lang::builtins::{foldhood_plus, mux};
 use rufi_core::core::lang::lang::{nbr, rep};
-use rufi_core::core::sensor_id::sensor_id::sensor;
-use rufi_core::core::vm::round_vm::round_vm::RoundVM;
+use rufi_core::core::sensor_id::sensor;
+use rufi_core::core::vm::round_vm::RoundVM;
 
 pub fn gradient(vm: RoundVM) -> (RoundVM, f64) {
     fn is_source(vm: RoundVM) -> (RoundVM, bool) {

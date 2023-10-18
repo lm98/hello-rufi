@@ -1,8 +1,8 @@
 use std::any::Any;
 use std::collections::HashMap;
 use std::rc::Rc;
-use rufi_core::core::export::export::Export;
-use rufi_core::core::sensor_id::sensor_id::SensorId;
+use rufi_core::core::export::Export;
+use rufi_core::core::sensor_id::SensorId;
 
 #[derive(Debug, Clone)]
 pub struct DeviceState {
@@ -18,6 +18,7 @@ impl DeviceState {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Topology {
     pub devices: Vec<i32>,
     pub states: HashMap<i32, DeviceState>,
