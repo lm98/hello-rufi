@@ -121,3 +121,19 @@ fn test_multiple_sources() {
     ]);
     assert_eq!(results, expected_results);
 }
+
+#[test]
+fn test_exports() {
+    let devices = vec![1, 2, 3, 4, 5];
+    let scheduling: Vec<i32> = iter::repeat(devices.clone()).take(5).flatten().collect();
+    let mut topology = setup_test_topology(devices.clone());
+    add_source(&mut topology, 2);
+
+    let topology_1 = run_on_device(gradient, topology, 1);
+    let device_1 = topology_1.states.get(&1).unwrap();
+    let expected_export = export!(
+        (path!(Rep(0), FoldHood(0)), f64::INFINITY),
+        (path!(Rep(0), FoldHood(1)), 1.0)
+    );
+    assert_eq!(device_1.exports.get(&1).unwrap().root::<f64>().clone(), f64::INFINITY);
+}
