@@ -9,7 +9,7 @@ use rufi_core::core::sensor_id::{sensor, SensorId};
 use rufi_core::core::vm::round_vm::RoundVM;
 use rufi_core::{export, path};
 use rufi_core::core::path::path::Path;
-use rufi_core::core::path::slot::Slot::{FoldHood, Rep};
+use rufi_core::core::path::slot::Slot::{FoldHood, Rep, Nbr};
 use hello_rufi::gradient::gradient;
 use hello_rufi::device_state::{DeviceState, Topology};
 
@@ -123,17 +123,65 @@ fn test_multiple_sources() {
 }
 
 #[test]
-fn test_exports() {
+fn test_exports_round_1() {
     let devices = vec![1, 2, 3, 4, 5];
     let scheduling: Vec<i32> = iter::repeat(devices.clone()).take(5).flatten().collect();
     let mut topology = setup_test_topology(devices.clone());
     add_source(&mut topology, 2);
 
-    let topology_1 = run_on_device(gradient, topology, 1);
-    let device_1 = topology_1.states.get(&1).unwrap();
-    let expected_export = export!(
-        (path!(Rep(0), FoldHood(0)), f64::INFINITY),
-        (path!(Rep(0), FoldHood(1)), 1.0)
-    );
-    assert_eq!(device_1.exports.get(&1).unwrap().root::<f64>().clone(), f64::INFINITY);
+    let final_topology = run_on_topology(gradient, topology, &scheduling);
+
+    let actual_exports: HashMap<i32, Export> = final_topology.states.iter().map(|(d, s)| {
+        (d.clone(), s.exports.get(&d).unwrap().clone())
+    }).collect();
+
+    let expected_exports: HashMap<i32, Export> = HashMap::from([
+        (1, export!(
+                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Nbr(0), FoldHood(0), Rep(0)), 1),
+                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Rep(0)), f64::INFINITY),
+                (Path::new(), f64::INFINITY)
+        )),
+        (2, export!(
+                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Nbr(0), FoldHood(0), Rep(0)), 2),
+                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Rep(0)), 0.0),
+                (Path::new(), 0.0)
+        )),
+        (3, export!(
+                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Nbr(0), FoldHood(0), Rep(0)), 3),
+                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Rep(0)), f64::INFINITY),
+                (Path::new(), f64::INFINITY)
+        )),
+        (4, export!(
+                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Nbr(0), FoldHood(0), Rep(0)), 4),
+                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Rep(0)), f64::INFINITY),
+                (Path::new(), f64::INFINITY)
+        )),
+        (5, export!(
+                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Nbr(0), FoldHood(0), Rep(0)), 5),
+                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Rep(0)), f64::INFINITY),
+                (Path::new(), f64::INFINITY)
+        )),
+    ]);
+
+    //assert_eq!(actual_exports, expected_exports);
+
+    for (d, e) in actual_exports.iter() {
+        let actual_root = e.root::<f64>();
+        let actual_paths = e.paths().keys().map(|p| p.clone()).collect::<Vec<Path>>();
+        let expected_root = expected_exports.get(d).unwrap().root::<f64>();
+        let expected_paths =
+            expected_exports.get(d).unwrap().paths().keys().map(|p| p.clone()).collect::<Vec<Path>>();
+        assert_eq!(actual_root, expected_root);
+        assert_eq!(actual_paths, expected_paths);
+    }
 }
