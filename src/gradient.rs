@@ -2,6 +2,7 @@ use rufi_core::core::lang::builtins::{foldhood_plus, mux};
 use rufi_core::core::lang::lang::{nbr, rep};
 use rufi_core::core::sensor_id::sensor;
 use rufi_core::core::vm::round_vm::RoundVM;
+use rufi_core::{lift, foldhood_plus};
 
 pub fn gradient(vm: RoundVM) -> (RoundVM, f64) {
     fn is_source(vm: RoundVM) -> (RoundVM, bool) {
@@ -11,25 +12,20 @@ pub fn gradient(vm: RoundVM) -> (RoundVM, f64) {
 
     rep(
         vm,
-        |vm1| (vm1, f64::INFINITY),
-        |vm2, d| {
+        lift!(f64::INFINITY),
+        |vm1, d| {
             mux(
-                vm2,
+                vm1,
                 is_source,
-                |vm4| {
-                    (vm4, 0.0 )
-                },
-                |vm5| {
-                    foldhood_plus(
-                        vm5,
-                        |vm6| (vm6, f64::INFINITY),
-                        |a, b| a.min(b),
-                        |vm7| {
-                            let (vm_, val) = nbr(vm7, |vm8| (vm8, d));
-                            (vm_, val + 1.0)
-                        }
-                    )
-                }
+                lift!(0.0),
+                foldhood_plus!(
+                    lift!(f64::INFINITY),
+                    |a, b| a.min(b),
+                    |vm2| {
+                        let (vm_, val) = nbr(vm2, lift!(d));
+                        (vm_, val + 1.0)
+                    }
+                )
             )
         }
     )
