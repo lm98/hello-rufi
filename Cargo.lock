@@ -70,9 +70,9 @@ dependencies = [
 
 [[package]]
 name = "rufi_core"
-version = "15.0.0"
+version = "15.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0646a311b55581ca00791d9547325c6c639ad458600e53a816d4f881924e091b"
+checksum = "21f469208d7d1ef77638b04c4be1c13a87e78a8b1fbf82e05f5f606fe0c6a40c"
 dependencies = [
  "rand",
 ]
