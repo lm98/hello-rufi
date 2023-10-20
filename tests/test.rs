@@ -1,5 +1,5 @@
 use std::any::Any;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::iter;
 use std::rc::Rc;
 use rufi_core::core::context::Context;
@@ -123,7 +123,7 @@ fn test_multiple_sources() {
 }
 
 #[test]
-fn test_exports_round_1() {
+fn test_exports() {
     let devices = vec![1, 2, 3, 4, 5];
     let scheduling: Vec<i32> = iter::repeat(devices.clone()).take(5).flatten().collect();
     let mut topology = setup_test_topology(devices.clone());
@@ -137,50 +137,48 @@ fn test_exports_round_1() {
 
     let expected_exports: HashMap<i32, Export> = HashMap::from([
         (1, export!(
-                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(FoldHood(0), Rep(0)), 1.0),
                 (path!(Nbr(0), FoldHood(0), Rep(0)), 1),
-                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
-                (path!(Rep(0)), f64::INFINITY),
-                (Path::new(), f64::INFINITY)
+                (path!(Nbr(1), FoldHood(0), Rep(0)), 1.0),
+                (path!(Rep(0)), 1.0),
+                (Path::new(), 1.0)
         )),
         (2, export!(
-                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(FoldHood(0), Rep(0)), 2.0),
                 (path!(Nbr(0), FoldHood(0), Rep(0)), 2),
-                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(Nbr(1), FoldHood(0), Rep(0)), 0.0),
                 (path!(Rep(0)), 0.0),
                 (Path::new(), 0.0)
         )),
         (3, export!(
-                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(FoldHood(0), Rep(0)), 1.0),
                 (path!(Nbr(0), FoldHood(0), Rep(0)), 3),
-                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
-                (path!(Rep(0)), f64::INFINITY),
-                (Path::new(), f64::INFINITY)
+                (path!(Nbr(1), FoldHood(0), Rep(0)), 1.0),
+                (path!(Rep(0)), 1.0),
+                (Path::new(), 1.0)
         )),
         (4, export!(
-                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(FoldHood(0), Rep(0)), 2.0),
                 (path!(Nbr(0), FoldHood(0), Rep(0)), 4),
-                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
-                (path!(Rep(0)), f64::INFINITY),
-                (Path::new(), f64::INFINITY)
+                (path!(Nbr(1), FoldHood(0), Rep(0)), 2.0),
+                (path!(Rep(0)), 2.0),
+                (Path::new(), 2.0)
         )),
         (5, export!(
-                (path!(FoldHood(0), Rep(0)), f64::INFINITY),
+                (path!(FoldHood(0), Rep(0)), 3.0),
                 (path!(Nbr(0), FoldHood(0), Rep(0)), 5),
-                (path!(Nbr(1), FoldHood(0), Rep(0)), f64::INFINITY),
-                (path!(Rep(0)), f64::INFINITY),
-                (Path::new(), f64::INFINITY)
+                (path!(Nbr(1), FoldHood(0), Rep(0)), 3.0),
+                (path!(Rep(0)), 3.0),
+                (Path::new(), 3.0)
         )),
     ]);
 
-    //assert_eq!(actual_exports, expected_exports);
-
     for (d, e) in actual_exports.iter() {
         let actual_root = e.root::<f64>();
-        let actual_paths = e.paths().keys().map(|p| p.clone()).collect::<Vec<Path>>();
+        let actual_paths = e.paths().keys().map(|p| p.clone()).collect::<HashSet<Path>>();
         let expected_root = expected_exports.get(d).unwrap().root::<f64>();
         let expected_paths =
-            expected_exports.get(d).unwrap().paths().keys().map(|p| p.clone()).collect::<Vec<Path>>();
+            expected_exports.get(d).unwrap().paths().keys().map(|p| p.clone()).collect::<HashSet<Path>>();
         assert_eq!(actual_root, expected_root);
         assert_eq!(actual_paths, expected_paths);
     }
