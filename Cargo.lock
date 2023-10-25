@@ -38,6 +38,7 @@ version = "0.1.0"
 dependencies = [
  "commons",
  "rufi_core",
+ "rufi_gradient",
 ]
 
 [[package]]
@@ -83,6 +84,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21f469208d7d1ef77638b04c4be1c13a87e78a8b1fbf82e05f5f606fe0c6a40c"
 dependencies = [
  "rand",
+]
+
+[[package]]
+name = "rufi_gradient"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f65946f8dbeb57428e67c647ede3076847cdc360295a08261296979baaabf4d"
+dependencies = [
+ "rufi_core",
 ]
 
 [[package]]

@@ -8,7 +8,7 @@ use rufi_core::core::lang::execution::round;
 use rufi_core::core::sensor_id::{sensor, SensorId};
 use rufi_core::core::vm::round_vm::RoundVM;
 use commons::device_state::DeviceState;
-use commons::gradient::gradient;
+use rufi_gradient::gradient;
 
 fn main() {
     let devices = vec![1, 2, 3, 4, 5];

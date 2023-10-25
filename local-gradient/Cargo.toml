@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 rufi_core = "15.1.0"
+rufi_gradient = "1.0.0"
 commons = { path = "../commons" }
