@@ -1,14 +1,11 @@
 [package]
-name = "distributed-gradient"
+name = "coordinator"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-commons = { path = "../commons" }
-rufi_core = "15.1.1"
-rufi_gradient = "1.0.0"
+commons = { path = "../../commons" }
 tokio = { version = "1.33.0", features = ["rt", "rt-multi-thread", "macros"] }
 rumqttc = "0.23.0"
-bytes = "1.5.0"
