@@ -10,8 +10,8 @@ use rufi_core::core::vm::round_vm::RoundVM;
 use rufi_core::{export, path};
 use rufi_core::core::path::path::Path;
 use rufi_core::core::path::slot::Slot::{FoldHood, Rep, Nbr};
-use hello_rufi::gradient::gradient;
-use hello_rufi::device_state::{DeviceState, Topology};
+use commons::device_state::{DeviceState, Topology};
+use commons::gradient::gradient;
 
 fn setup_test_topology(devices: Vec<i32>) -> Topology {
     /* Set up a simple topology that will be used for these tests.

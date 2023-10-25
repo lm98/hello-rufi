@@ -1,5 +1,3 @@
-extern crate hello_rufi;
-
 use std::any::Any;
 use std::collections::HashMap;
 use std::iter;
@@ -9,8 +7,8 @@ use rufi_core::core::export::Export;
 use rufi_core::core::lang::execution::round;
 use rufi_core::core::sensor_id::{sensor, SensorId};
 use rufi_core::core::vm::round_vm::RoundVM;
-use hello_rufi::device_state::DeviceState;
-use hello_rufi::gradient::gradient;
+use commons::device_state::DeviceState;
+use commons::gradient::gradient;
 
 fn main() {
     let devices = vec![1, 2, 3, 4, 5];
