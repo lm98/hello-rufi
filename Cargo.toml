@@ -2,6 +2,7 @@
 members = [
     "commons",
     "local-gradient",
+    "distributed-gradient"
 ]
 
 resolver = "2"
