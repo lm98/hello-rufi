@@ -3,7 +3,6 @@ members = [
     "commons",
     "local-gradient",
     "distributed-gradient",
-    "distributed-gradient/coordinator",
 ]
 
 resolver = "2"

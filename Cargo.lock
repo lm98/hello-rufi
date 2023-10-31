@@ -75,16 +75,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "commons"
 version = "0.1.0"
 dependencies = [
- "rufi_core",
-]
-
-[[package]]
-name = "coordinator"
-version = "0.1.0"
-dependencies = [
- "commons",
- "rumqttc",
- "tokio",
+ "rf-core",
 ]
 
 [[package]]
@@ -109,9 +100,11 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "commons",
- "rufi_core",
+ "rf-core",
  "rufi_gradient",
  "rumqttc",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 
@@ -181,6 +174,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d77f7ec81a6d05a3abb01ab6eb7590f6083d08449fe5a1c8b1e620283546ccb7"
 
 [[package]]
+name = "itoa"
+version = "1.0.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af150ab688ff2122fcef229be89cb50dd66af9e01a4ff320cc137eecc9bacc38"
+
+[[package]]
 name = "libc"
 version = "0.2.149"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -191,7 +190,7 @@ name = "local-gradient"
 version = "0.1.0"
 dependencies = [
  "commons",
- "rufi_core",
+ "rf-core",
  "rufi_gradient",
 ]
 
@@ -329,6 +328,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rf-core"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b196ff4d3a7238b38971c7d52b7f0a80846c7181191824758e960df5b0d79ec3"
+dependencies = [
+ "rand",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ring"
 version = "0.17.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -343,21 +353,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "rufi_core"
-version = "15.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3199c6fbc21a04d58fe978aaca2d5a60d9ec2b41bc33d7aa0be851a14f457806"
-dependencies = [
- "rand",
-]
-
-[[package]]
 name = "rufi_gradient"
-version = "1.0.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f65946f8dbeb57428e67c647ede3076847cdc360295a08261296979baaabf4d"
+checksum = "0e6df0b5848c1f8578d6b9ab38ff11a8b8415199d05d1b6b1af15b21e73029a8"
 dependencies = [
- "rufi_core",
+ "rf-core",
 ]
 
 [[package]]
@@ -428,6 +429,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ryu"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ad4cc8da4ef723ed60bced201181d83791ad433213d8c24efffda1eec85d741"
+
+[[package]]
 name = "schannel"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -473,6 +480,37 @@ checksum = "e932934257d3b408ed8f30db49d85ea163bfe74961f017f405b025af298f0c7a"
 dependencies = [
  "core-foundation-sys",
  "libc",
+]
+
+[[package]]
+name = "serde"
+version = "1.0.190"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91d3c334ca1ee894a2c6f6ad698fe8c435b76d504b13d436f0685d648d6d96f7"
+dependencies = [
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_derive"
+version = "1.0.190"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67c5609f394e5c2bd7fc51efda478004ea80ef42fee983d5c67a65e34f32c0e3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "serde_json"
+version = "1.0.107"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b420ce6e3d8bd882e9b243c6eed35dbc9a6110c9769e74b584e0d68d1f20c65"
+dependencies = [
+ "itoa",
+ "ryu",
+ "serde",
 ]
 
 [[package]]
