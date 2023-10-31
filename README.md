@@ -1,15 +1,13 @@
 # Hello RuFi
-This project shows an implementation of a gradient aggregate program using the RuFi framework.
-It also contains an application that exemplifies the setup of a RuFi program.
-To see how the gradient aggregate program works, you can run the application via 
+This project shows how to setup a RuFi program.
+
+## Running the examples
+- Local gradient:
 ````rust
-cargo run hello_rufi
+cargo run --bin local-gradient
 ````
-
-or you can take a look at the tests in the `tests` directory.
-
-## Running the tests
-In order to execute the tests, head to the root directory of the project and run
+- Distributed gradient:
+You can individually start a node by opening a new terminal shell and executing:
 ````rust
-cargo test
+cargo run --bin distributed-gradient node_id
 ````
