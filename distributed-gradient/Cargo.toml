@@ -7,8 +7,10 @@ edition = "2021"
 
 [dependencies]
 commons = { path = "../commons" }
-rufi_core = "15.1.1"
-rufi_gradient = "1.0.0"
+rf-core = "0.1.1"
+rufi_gradient = "2.0.0"
 tokio = { version = "1.33.0", features = ["rt", "rt-multi-thread", "macros"] }
 rumqttc = "0.23.0"
 bytes = "1.5.0"
+serde_json = "1.0.107"
+serde = { version = "1.0.190", features = ["derive"] }
