@@ -1,12 +1,8 @@
-use rufi_core::core::export::Export;
+use rf_core::export::Export;
+use serde::{Deserialize, Serialize};
 
-pub struct Message;
-
-impl Message {
-    pub fn from_export(export: Export) -> Self {
-        todo!()
-    }
-    pub fn to_export(&self) -> Export {
-        todo!()
-    }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Message {
+    pub source: i32,
+    pub export: Export,
 }

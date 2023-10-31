@@ -2,12 +2,12 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::iter;
 use std::rc::Rc;
-use rufi_core::core::context::Context;
-use rufi_core::core::export::Export;
-use rufi_core::core::lang::execution::round;
-use rufi_core::core::sensor_id::{sensor, SensorId};
-use rufi_core::core::vm::round_vm::RoundVM;
-use commons::device_state::DeviceState;
+use rf_core::context::Context;
+use rf_core::export::Export;
+use rf_core::lang::execution::round;
+use rf_core::sensor_id::{sensor, SensorId};
+use rf_core::vm::round_vm::RoundVM;
+use commons::DeviceState;
 use rufi_gradient::gradient;
 
 fn main() {
