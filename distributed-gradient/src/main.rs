@@ -67,13 +67,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client_clone = client.clone();
     let (tx, mut rx) = mpsc::channel::<Command>(32);
     tokio::spawn(async move {
-        subscriptions(client_clone, nbrs).await;
+        subscriptions(client_clone, nbrs).await.unwrap();
         // poll the eventloop for new messages
         loop {
-            let notification = eventloop.poll().await.unwrap();
-            if let rumqttc::Event::Incoming(rumqttc::Packet::Publish(msg)) = notification {
-                let msg_string = String::from_utf8(msg.payload.to_vec()).unwrap();
-                tx.send(Command::Send { msg: msg_string }).await.unwrap();
+            //let notification = eventloop.poll().await.unwrap();
+            if let Ok(notification) = eventloop.poll().await {
+                if let rumqttc::Event::Incoming(rumqttc::Packet::Publish(msg)) = notification {
+                    let msg_string = String::from_utf8(msg.payload.to_vec()).unwrap();
+                    tx.send(Command::Send { msg: msg_string }).await.unwrap();
+                }
             }
         }
     });
