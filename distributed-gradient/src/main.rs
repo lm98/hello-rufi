@@ -35,6 +35,7 @@ impl Arguments {
         for arg in args {
             match arg.as_ref() {
                 "-t" => r.source = true,
+                "-f" => r.source = false,
                 x => r.id = x.parse::<i32>().unwrap(),
             }
         }
