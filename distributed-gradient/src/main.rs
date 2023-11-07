@@ -99,10 +99,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         client.publish(format!("hello-rufi/{self_id}/subscriptions"), QoS::AtMostOnce, false, Bytes::from(msg_ser)).await?;
 
         // Receive the neighbouring exports from the message task
-        if let Some(message) = rx.recv().await {
-            if let Command::Send { msg } = message {
-                let msg: Message = serde_json::from_str(&msg).unwrap();
-                states.insert(msg.source, msg.export);
+        if let Some(cmd) = rx.recv().await {
+            match cmd {
+                Command::Send { msg } => {
+                    let msg: Message = serde_json::from_str(&msg).unwrap();
+                    states.insert(msg.source, msg.export);
+                }
             }
         }
         tokio::time::sleep(Duration::from_secs(2)).await;
