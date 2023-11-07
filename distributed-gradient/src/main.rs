@@ -45,7 +45,7 @@ impl Arguments {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), String> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get arguments from the CLI
     let args = Arguments::parse(std::env::args().skip(1))?;
     let self_id = args.id;
@@ -94,7 +94,7 @@ async fn main() -> Result<(), String> {
         // Publish the export
         let msg = Message {  source: self_id, export: self_export.clone() };
         let msg_ser = serde_json::to_string(&msg).unwrap();
-        client.publish(format!("hello-rufi/{self_id}/subscriptions"), QoS::AtMostOnce, false, Bytes::from(msg_ser)).await.unwrap();
+        client.publish(format!("hello-rufi/{self_id}/subscriptions"), QoS::AtMostOnce, false, Bytes::from(msg_ser)).await?;
 
         // Receive the neighbouring exports from the message task
         if let Some(message) = rx.recv().await {
@@ -108,9 +108,10 @@ async fn main() -> Result<(), String> {
 
 }
 
-async fn subscriptions(client: AsyncClient, nbrs: Vec<i32>) {
+async fn subscriptions(client: AsyncClient, nbrs: Vec<i32>) -> Result<(), Box<dyn std::error::Error>> {
     for nbr in nbrs {
-        client.subscribe(format!("hello-rufi/{nbr}/subscriptions"), QoS::AtMostOnce).await.unwrap();
+        client.subscribe(format!("hello-rufi/{nbr}/subscriptions"), QoS::AtMostOnce).await?;
         println!("Subscribed to: {}", nbr)
     }
+    Ok(())
 }
