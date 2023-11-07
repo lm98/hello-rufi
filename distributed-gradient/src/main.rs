@@ -17,6 +17,7 @@ use distributed_gradient::message::Message;
 // This enum represent the different command we will send between channels
 #[derive(Debug)]
 enum Command {
+    Empty,
     Send {
         msg: String,
     }
@@ -76,6 +77,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let msg_string = String::from_utf8(msg.payload.to_vec()).unwrap();
                     tx.send(Command::Send { msg: msg_string }).await.unwrap();
                 }
+            } else {
+                tx.send(Command::Empty).await.unwrap();
             }
         }
     });
@@ -105,6 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let msg: Message = serde_json::from_str(&msg).unwrap();
                     states.insert(msg.source, msg.export);
                 }
+                _ => {}
             }
         }
         tokio::time::sleep(Duration::from_secs(2)).await;
@@ -115,7 +119,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 async fn subscriptions(client: AsyncClient, nbrs: Vec<i32>) -> Result<(), Box<dyn std::error::Error>> {
     for nbr in nbrs {
         client.subscribe(format!("hello-rufi/{nbr}/subscriptions"), QoS::AtMostOnce).await?;
-        println!("Subscribed to: {}", nbr)
     }
     Ok(())
 }
