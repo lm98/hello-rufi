@@ -111,7 +111,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         println!("CONTEXT: {:?}", context);
         let mut vm = RoundVM::new(context);
-        vm.export_stack.push(Export::new());
+        vm.new_export_stack();
         let (mut vm_, result) = round(vm, gradient);
         let self_export: Export = vm_.export_data().clone();
         states.insert(self_id, self_export.clone());
@@ -157,3 +157,12 @@ async fn subscriptions(
     }
     Ok(())
 }
+
+/*
+fn mock_main() {
+    let program = ... ;
+    let executor = Executor::new();
+    executor.start(program).with_policy(ExecutionPolicy::MultiThreaded);
+    
+}
+*/

@@ -1,6 +1,5 @@
 use commons::DeviceState;
 use rf_core::context::Context;
-use rf_core::export::Export;
 use rf_core::lang::execution::round;
 use rf_core::sensor_id::{sensor, SensorId};
 use rf_core::vm::round_vm::RoundVM;
@@ -57,7 +56,7 @@ fn main() {
         println!("RUN: DEVICE {}\n\tCONTEXT {:?}", d, ctx);
         // Setup the VM
         let mut vm = RoundVM::new(ctx);
-        vm.export_stack.push(Export::new());
+        vm.new_export_stack();
         // Run the program
         let (mut vm_, res) = round(vm, gradient);
         let mut to_update = states.get(&d).unwrap().clone();

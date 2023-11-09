@@ -361,9 +361,9 @@ dependencies = [
 
 [[package]]
 name = "rf-core"
-version = "0.1.2"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "213288323d6a785a137933d68b87cbc00ed627803625359ecab4a203cbe537f5"
+checksum = "67ad041efae81866a957aa3df822ae63e254312e6a8415fb79155a5e1d20300e"
 dependencies = [
  "rand",
  "serde",
@@ -386,9 +386,9 @@ dependencies = [
 
 [[package]]
 name = "rufi_gradient"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86a930c104f2e7b8369d13b23d791d79ab0ed224dfec4d7051f66bb1440cf1c4"
+checksum = "b313473161ff9916c37401822809edd7d62cd15380aa6095399d31b868d72d47"
 dependencies = [
  "rf-core",
 ]
