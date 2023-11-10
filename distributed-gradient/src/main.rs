@@ -12,6 +12,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
 use tokio::sync::mpsc;
+use distributed_gradient::message::message_queue::deque::MessageDeque;
+use distributed_gradient::state::states_manager::{StatesManager, MessageProcessingPolicy};
 
 // This enum represent the different command we will send between channels
 #[derive(Debug)]
@@ -87,7 +89,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         subscriptions(client_clone, nbrs).await.unwrap();
         // poll the eventloop for new messages
         loop {
-            //let notification = eventloop.poll().await.unwrap();
             if let Ok(notification) = eventloop.poll().await {
                 if let rumqttc::Event::Incoming(rumqttc::Packet::Publish(msg)) = notification {
                     let msg_string = String::from_utf8(msg.payload.to_vec()).unwrap();
@@ -99,25 +100,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // Setup the aggregate program execution
-    let mut states: HashMap<i32, Export> = HashMap::new();
+    let queue = MessageDeque::new();
+    let mut states_man = StatesManager::new(queue).with_policy(MessageProcessingPolicy::AllAtOnce);
+
     loop {
-        //Execute a round
+        //STEP 1: Setup the aggregate program execution
+
+        // Retrieve the neighbouring exports from the message queue
+        let states = states_man.next_set_of_states();
+
+        //STEP 2: Execute a round
         let context = Context::new(
             self_id,
             local_sensor.clone(),
             nbr_sensor.clone(),
-            states.clone(),
+            states,
         );
         println!("CONTEXT: {:?}", context);
         let mut vm = RoundVM::new(context);
         vm.new_export_stack();
         let (mut vm_, result) = round(vm, gradient);
         let self_export: Export = vm_.export_data().clone();
-        states.insert(self_id, self_export.clone());
         println!("OUTPUT: {}\nEXPORT: {}\n", result, self_export);
 
-        // Publish the export
+        //STEP 3: Publish the export
         let msg = Message {
             source: self_id,
             export: self_export.clone(),
@@ -132,12 +138,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .await?;
 
-        // Receive the neighbouring exports from the message task
+        //STEP 4: Receive the neighbouring exports from the message task
         if let Some(cmd) = rx.recv().await {
             match cmd {
                 Command::Send { msg } => {
                     let msg: Message = serde_json::from_str(&msg).unwrap();
-                    states.insert(msg.source, msg.export);
+                    states_man.enqueue(msg);
                 }
                 _ => {}
             }
@@ -157,12 +163,3 @@ async fn subscriptions(
     }
     Ok(())
 }
-
-/*
-fn mock_main() {
-    let program = ... ;
-    let executor = Executor::new();
-    executor.start(program).with_policy(ExecutionPolicy::MultiThreaded);
-    
-}
-*/
