@@ -12,8 +12,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
 use tokio::sync::mpsc;
-use distributed_gradient::message::message_queue::deque::MessageDeque;
-use distributed_gradient::state::states_manager::{StatesManager, MessageProcessingPolicy};
+use distributed_gradient::mailbox::AsStates;
+use distributed_gradient::mailbox::factory::{MailboxFactory, ProcessingPolicy};
 
 // This enum represent the different command we will send between channels
 #[derive(Debug)]
@@ -100,14 +100,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    let queue = MessageDeque::new();
-    let mut states_man = StatesManager::new(queue).with_policy(MessageProcessingPolicy::AllAtOnce);
+    let mut mailbox = MailboxFactory::from_policy(ProcessingPolicy::MostRecent);
 
     loop {
         //STEP 1: Setup the aggregate program execution
 
-        // Retrieve the neighbouring exports from the message queue
-        let states = states_man.next_set_of_states();
+        // Retrieve the neighbouring exports from the mailbox
+        let states = mailbox.messages().as_states();
 
         //STEP 2: Execute a round
         let context = Context::new(
@@ -143,7 +142,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             match cmd {
                 Command::Send { msg } => {
                     let msg: Message = serde_json::from_str(&msg).unwrap();
-                    states_man.enqueue(msg);
+                    mailbox.enqueue(msg);
                 }
                 _ => {}
             }
