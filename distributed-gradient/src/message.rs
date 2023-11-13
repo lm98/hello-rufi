@@ -1,8 +1,6 @@
 use rf_core::export::Export;
 use serde::{Deserialize, Serialize};
 
-pub mod message_queue;
-
 /// This struct represent a message that will be sent between nodes.
 #[derive(Debug, Clone, PartialEq,Serialize, Deserialize)]
 pub struct Message {
