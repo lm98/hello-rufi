@@ -123,10 +123,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("OUTPUT: {}\nEXPORT: {}\n", result, self_export);
 
         //STEP 3: Publish the export
-        let msg = Message {
-            source: self_id,
-            export: self_export.clone(),
-        };
+        let msg = Message::new(self_id, self_export, std::time::SystemTime::now());
         let msg_ser = serde_json::to_string(&msg).unwrap();
         client
             .publish(
