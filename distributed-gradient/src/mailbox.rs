@@ -29,6 +29,7 @@ impl AsStates for Messages {
 #[cfg(test)]
 mod test {
     use std::collections::HashMap;
+    use std::time::SystemTime;
 
     #[test]
     fn test_as_states() {
@@ -44,9 +45,9 @@ mod test {
         let export_1 = export!((Path::new(), 1));
         let export_2 = export!((Path::new(), 2));
         let export_3 = export!((Path::new(), 3));
-        messages.insert(1, Message::new(1, export_1.clone()));
-        messages.insert(2, Message::new(2, export_2.clone()));
-        messages.insert(3, Message::new(3, export_3.clone()));
+        messages.insert(1, Message::new(1, export_1.clone(),SystemTime::now()));
+        messages.insert(2, Message::new(2, export_2.clone(), SystemTime::now()));
+        messages.insert(3, Message::new(3, export_3.clone(), SystemTime::now()));
 
         let states: States = messages.as_states();
         assert_eq!(states.len(), 3);
