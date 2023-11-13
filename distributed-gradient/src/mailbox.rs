@@ -4,13 +4,18 @@ use crate::state::States;
 
 pub mod factory;
 
+/// This trait represents the mailbox of a device. It is used to store the messages received from the neighbors
 pub trait Mailbox {
+    /// Enqueue a message in the mailbox
     fn enqueue(&mut self, msg: Message);
+    /// Returns the messages stored in the mailbox
     fn messages(&mut self) -> Messages;
 }
 
+/// This type alias represent the messages stored in the mailbox
 pub type Messages = HashMap<i32, Message>;
 
+/// This trait is used to convert a set of [Messages] into a set of [States]
 pub trait AsStates {
     fn as_states(&self) -> States;
 }
