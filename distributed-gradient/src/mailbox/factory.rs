@@ -5,14 +5,15 @@ use crate::message::Message;
 
 /// This enum represent the different processing policies for the mailbox.
 pub enum ProcessingPolicy {
-    /// Only the last message received is kept. This policy, from the user's viewpoint, acts similarly to
+    /// For each neighbouring message, only the last one received is kept. This policy, from the user's viewpoint, acts similarly to
     /// the [MostRecent] version, but it is more memory efficient since the other messages received are substituted
     /// with the last received.
     MemoryLess,
-    /// Keeps every message received from each neighbor, but returns only the most recent one.
+    /// Keeps every message received from each neighbor, but returns only the most recent one. Used
+    /// for processing in a LIFO order.
     MostRecent,
-    /// Keeps every message received from each neighbor, but returns only the least recent one. This policy is
-    /// useful if the user wants to make sure every message is processed.
+    /// Keeps every message received from each neighbor, but returns only the least recent one. Used
+    /// for processing in a FIFO order.
     LeastRecent,
 }
 
@@ -71,5 +72,95 @@ impl Mailbox for TimeOrderedMailbox {
             }
         }
         messages
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::collections::HashMap;
+    use std::time::SystemTime;
+    use crate::mailbox::factory::{MailboxFactory, ProcessingPolicy};
+    use crate::message::Message;
+    use rf_core::export::Export;
+    use rf_core::path::Path;
+    use std::any::Any;
+    use rf_core::export;
+
+    #[test]
+    fn test_memory_less() {
+        let mut mailbox = MailboxFactory::from_policy(ProcessingPolicy::MemoryLess);
+        let export_2 = export!((Path::new(), 2));
+        let export_3 = export!((Path::new(), 3));
+        let msg_2 = Message::new(2, export_2.clone(), SystemTime::now());
+        let msg_3 = Message::new(3, export_3.clone(), SystemTime::now());
+        mailbox.enqueue(msg_2.clone());
+        mailbox.enqueue(msg_3.clone());
+        let messages = mailbox.messages();
+        assert_eq!(messages, HashMap::from([(2, msg_2), (3, msg_3.clone())]));
+
+        // update msg_2
+        let new_export_2 = export!((Path::new(), 2+2));
+        let new_msg_2 = Message::new(2, new_export_2, SystemTime::now());
+        mailbox.enqueue(new_msg_2.clone());
+        let messages = mailbox.messages();
+        assert_eq!(messages, HashMap::from([(2, new_msg_2), (3, msg_3)]));
+    }
+
+    #[test]
+    fn test_most_recent() {
+        let mut mailbox = MailboxFactory::from_policy(ProcessingPolicy::MostRecent);
+
+        // add the first round of messages
+        let export_2 = export!((Path::new(), 2));
+        let export_3 = export!((Path::new(), 3));
+        let msg_2 = Message::new(2, export_2.clone(), SystemTime::now());
+        let msg_3 = Message::new(3, export_3.clone(), SystemTime::now());
+        mailbox.enqueue(msg_2.clone());
+        mailbox.enqueue(msg_3.clone());
+
+        // add the second round of messages
+        let new_export_2 = export!((Path::new(), 2+2));
+        let new_msg_2 = Message::new(2, new_export_2, SystemTime::now());
+        let new_export_3 = export!((Path::new(), 3+3));
+        let new_msg_3 = Message::new(3, new_export_3, SystemTime::now());
+        mailbox.enqueue(new_msg_2.clone());
+        mailbox.enqueue(new_msg_3.clone());
+
+        // pop once
+        let messages = mailbox.messages();
+        assert_eq!(messages, HashMap::from([(2, new_msg_2), (3, new_msg_3)]));
+
+        // pop the second time
+        let messages = mailbox.messages();
+        assert_eq!(messages, HashMap::from([(2, msg_2), (3, msg_3)]));
+    }
+
+    #[test]
+    fn test_least_recent() {
+        let mut mailbox = MailboxFactory::from_policy(ProcessingPolicy::LeastRecent);
+
+        // add the first round of messages
+        let export_2 = export!((Path::new(), 2));
+        let export_3 = export!((Path::new(), 3));
+        let msg_2 = Message::new(2, export_2.clone(), SystemTime::now());
+        let msg_3 = Message::new(3, export_3.clone(), SystemTime::now());
+        mailbox.enqueue(msg_2.clone());
+        mailbox.enqueue(msg_3.clone());
+
+        // add the second round of messages
+        let new_export_2 = export!((Path::new(), 2+2));
+        let new_msg_2 = Message::new(2, new_export_2, SystemTime::now());
+        let new_export_3 = export!((Path::new(), 3+3));
+        let new_msg_3 = Message::new(3, new_export_3, SystemTime::now());
+        mailbox.enqueue(new_msg_2.clone());
+        mailbox.enqueue(new_msg_3.clone());
+
+        // pop once
+        let messages = mailbox.messages();
+        assert_eq!(messages, HashMap::from([(2, msg_2), (3, msg_3)]));
+
+        // pop the second time
+        let messages = mailbox.messages();
+        assert_eq!(messages, HashMap::from([(2, new_msg_2), (3, new_msg_3)]));
     }
 }
