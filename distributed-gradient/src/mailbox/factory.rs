@@ -3,15 +3,24 @@ use std::time::SystemTime;
 use crate::mailbox::{Mailbox, Messages};
 use crate::message::Message;
 
+/// This enum represent the different processing policies for the mailbox.
 pub enum ProcessingPolicy {
+    /// Only the last message received is kept. This policy, from the user's viewpoint, acts similarly to
+    /// the [MostRecent] version, but it is more memory efficient since the other messages received are substituted
+    /// with the last received.
     MemoryLess,
+    /// Keeps every message received from each neighbor, but returns only the most recent one.
     MostRecent,
+    /// Keeps every message received from each neighbor, but returns only the least recent one. This policy is
+    /// useful if the user wants to make sure every message is processed.
     LeastRecent,
 }
 
+/// This struct is used as a factory for [Mailbox]es.
 pub struct MailboxFactory;
 
 impl MailboxFactory {
+    /// Creates a new [Mailbox] with the given [ProcessingPolicy].
     pub fn from_policy(policy: ProcessingPolicy) -> Box<dyn Mailbox> {
         match policy {
             ProcessingPolicy::MemoryLess => Box::new(MemoryLessMailbox { messages: HashMap::new() }),
