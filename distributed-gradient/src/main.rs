@@ -1,4 +1,3 @@
-use bytes::Bytes;
 use distributed_gradient::message::Message;
 use rf_core::context::Context;
 use rf_core::export::Export;
@@ -6,21 +5,15 @@ use rf_core::lang::execution::round;
 use rf_core::sensor_id::{sensor, SensorId};
 use rf_core::vm::round_vm::RoundVM;
 use rufi_gradient::gradient;
-use rumqttc::{AsyncClient, MqttOptions, QoS};
+use rumqttc::MqttOptions;
 use std::any::Any;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
-use tokio::sync::mpsc;
 use distributed_gradient::mailbox::AsStates;
 use distributed_gradient::mailbox::factory::{MailboxFactory, ProcessingPolicy};
-
-// This enum represent the different command we will send between channels
-#[derive(Debug)]
-enum Command {
-    Empty,
-    Send { msg: String },
-}
+use distributed_gradient::network::NetworkUpdate;
+use distributed_gradient::network::factory::NetworkFactory;
 
 #[derive(Debug, Default)]
 struct Arguments {
@@ -51,12 +44,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let self_id = args.id;
     let is_source = args.source;
 
-    // Setup the MQTT client
-    let mut mqttoptions =
-        MqttOptions::new(format!("device#{}", self_id), "test.mosquitto.org", 1883);
-    mqttoptions.set_keep_alive(Duration::from_secs(5));
-    let (client, mut eventloop) = AsyncClient::new(mqttoptions, 20);
-
     /* Set up a simple topology that will be used for these tests.
      *  Topology: [1] -- [2] -- [3] -- [4] -- [5].
      */
@@ -82,25 +69,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .collect(),
     )]);
 
-    // Spawn a task to handle the messages sent from neighbors
-    let client_clone = client.clone();
-    let (tx, mut rx) = mpsc::channel::<Command>(32);
-    tokio::spawn(async move {
-        subscriptions(client_clone, nbrs).await.unwrap();
-        // poll the eventloop for new messages
-        loop {
-            if let Ok(notification) = eventloop.poll().await {
-                if let rumqttc::Event::Incoming(rumqttc::Packet::Publish(msg)) = notification {
-                    let msg_string = String::from_utf8(msg.payload.to_vec()).unwrap();
-                    tx.send(Command::Send { msg: msg_string }).await.unwrap();
-                }
-            } else {
-                tx.send(Command::Empty).await.unwrap();
-            }
-        }
-    });
+    // Setup the MQTT client
+    let mut mqttoptions =
+        MqttOptions::new(format!("device#{}", self_id), "test.mosquitto.org", 1883);
+    mqttoptions.set_keep_alive(Duration::from_secs(5));
+    let mut network = NetworkFactory::async_mqtt_network(mqttoptions, nbrs).await;
 
-    let mut mailbox = MailboxFactory::from_policy(ProcessingPolicy::MostRecent);
+    // Setup the mailbox
+    let mut mailbox = MailboxFactory::from_policy(ProcessingPolicy::MemoryLess);
 
     loop {
         //STEP 1: Setup the aggregate program execution
@@ -125,19 +101,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         //STEP 3: Publish the export
         let msg = Message::new(self_id, self_export, std::time::SystemTime::now());
         let msg_ser = serde_json::to_string(&msg).unwrap();
-        client
-            .publish(
-                format!("hello-rufi/{self_id}/subscriptions"),
-                QoS::AtMostOnce,
-                false,
-                Bytes::from(msg_ser),
-            )
-            .await?;
+        network.send(self_id, msg_ser).await?;
 
-        //STEP 4: Receive the neighbouring exports from the message task
-        if let Some(cmd) = rx.recv().await {
-            match cmd {
-                Command::Send { msg } => {
+        //STEP 4: Receive the neighbouring exports from the network
+        if let Ok(update) = network.recv().await {
+            match update {
+                NetworkUpdate::Update { msg } => {
                     let msg: Message = serde_json::from_str(&msg).unwrap();
                     mailbox.enqueue(msg);
                 }
@@ -148,14 +117,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-async fn subscriptions(
-    client: AsyncClient,
-    nbrs: Vec<i32>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    for nbr in nbrs {
-        client
-            .subscribe(format!("hello-rufi/{nbr}/subscriptions"), QoS::AtMostOnce)
-            .await?;
-    }
-    Ok(())
-}
