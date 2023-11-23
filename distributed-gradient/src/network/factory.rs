@@ -1,8 +1,8 @@
+use crate::network::{Network, NetworkResult, NetworkUpdate};
 use async_trait::async_trait;
 use bytes::Bytes;
 use rumqttc::{AsyncClient, MqttOptions, QoS};
 use tokio::sync::mpsc::Receiver;
-use crate::network::{Network, NetworkResult, NetworkUpdate};
 
 /// This struct represent a factory that will be used to create a [Network]
 pub struct NetworkFactory;
@@ -35,7 +35,8 @@ impl AsyncMQTTNetwork {
         for nbr in topics.clone() {
             client
                 .subscribe(format!("hello-rufi/{nbr}/subscriptions"), QoS::AtMostOnce)
-                .await.unwrap();
+                .await
+                .unwrap();
         }
         let (sender, receiver) = tokio::sync::mpsc::channel::<NetworkUpdate>(100);
         tokio::spawn(async move {
@@ -43,7 +44,10 @@ impl AsyncMQTTNetwork {
                 if let Ok(notification) = eventloop.poll().await {
                     if let rumqttc::Event::Incoming(rumqttc::Packet::Publish(msg)) = notification {
                         let msg_string = String::from_utf8(msg.payload.to_vec()).unwrap();
-                        sender.send(NetworkUpdate::Update { msg: msg_string }).await.unwrap();
+                        sender
+                            .send(NetworkUpdate::Update { msg: msg_string })
+                            .await
+                            .unwrap();
                     }
                 } else {
                     sender.send(NetworkUpdate::None).await.unwrap();
@@ -83,6 +87,9 @@ impl Network for AsyncMQTTNetwork {
     }
 
     async fn recv(&mut self) -> NetworkResult<NetworkUpdate> {
-        self.receiver.recv().await.ok_or("No message received".into())
+        self.receiver
+            .recv()
+            .await
+            .ok_or("No message received".into())
     }
 }

@@ -1,4 +1,8 @@
+use distributed_gradient::mailbox::factory::{MailboxFactory, ProcessingPolicy};
+use distributed_gradient::mailbox::{AsStates, Mailbox};
 use distributed_gradient::message::Message;
+use distributed_gradient::network::factory::NetworkFactory;
+use distributed_gradient::network::{Network, NetworkUpdate};
 use rf_core::context::Context;
 use rf_core::export::Export;
 use rf_core::lang::execution::round;
@@ -8,12 +12,11 @@ use rufi_gradient::gradient;
 use rumqttc::MqttOptions;
 use std::any::Any;
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::Display;
 use std::rc::Rc;
+use std::str::FromStr;
 use std::time::Duration;
-use distributed_gradient::mailbox::AsStates;
-use distributed_gradient::mailbox::factory::{MailboxFactory, ProcessingPolicy};
-use distributed_gradient::network::NetworkUpdate;
-use distributed_gradient::network::factory::NetworkFactory;
 
 #[derive(Debug, Default)]
 struct Arguments {
@@ -85,12 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let states = mailbox.messages().as_states();
 
         //STEP 2: Execute a round
-        let context = Context::new(
-            self_id,
-            local_sensor.clone(),
-            nbr_sensor.clone(),
-            states,
-        );
+        let context = Context::new(self_id, local_sensor.clone(), nbr_sensor.clone(), states);
         println!("CONTEXT: {:?}", context);
         let mut vm = RoundVM::new(context);
         vm.new_export_stack();
