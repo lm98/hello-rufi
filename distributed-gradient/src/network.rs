@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 pub mod factory;
 
-type NetworkResult<T> = Result<T, Box<dyn std::error::Error>>;
+pub type NetworkResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 /// This enum represent the different update we will receive from the network
 pub enum NetworkUpdate {
