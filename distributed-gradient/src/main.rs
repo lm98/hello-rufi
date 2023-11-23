@@ -101,7 +101,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         //STEP 3: Publish the export
         let msg = Message::new(self_id, self_export, std::time::SystemTime::now());
         let msg_ser = serde_json::to_string(&msg).unwrap();
-        network.send(self_id, msg_ser).await?;
+        network.broadcast(self_id, msg_ser).await?;
 
         //STEP 4: Receive the neighbouring exports from the network
         if let Ok(update) = network.recv().await {

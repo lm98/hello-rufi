@@ -26,7 +26,7 @@ pub trait Network {
     ///
     /// * `Ok(())` - If the message has been sent
     /// * `Err(e)` - If an error occurred
-    async fn send(&self, source: i32, msg: String) -> NetworkResult<()>;
+    async fn broadcast(&self, source: i32, msg: String) -> NetworkResult<()>;
     /// Receive a message from the network
     ///
     /// # Returns
