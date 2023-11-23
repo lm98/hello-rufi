@@ -15,6 +15,28 @@ pub enum NetworkUpdate {
 /// This trait represent a network that will be used to send and receive messages
 #[async_trait]
 pub trait Network {
+    /// Subscribe to a topic
+    ///
+    /// # Arguments
+    ///
+    /// * `nbr` - The neighbor to subscribe to
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - If the subscription has been done
+    /// * `Err(e)` - If an error occurred
+    async fn subscribe_to(&self, nbr: i32) -> NetworkResult<()>;
+    /// Unsubscribe to a topic
+    ///
+    /// # Arguments
+    ///
+    /// * `nbr` - The neighbor to unsubscribe to
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - If the unsubscription has been done
+    /// * `Err(e)` - If an error occurred
+    async fn unsubscribe_to(&self, nbr: i32) -> NetworkResult<()>;
     /// Send a message to the network
     ///
     /// # Arguments

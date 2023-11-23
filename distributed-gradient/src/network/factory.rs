@@ -56,6 +56,20 @@ impl AsyncMQTTNetwork {
 
 #[async_trait]
 impl Network for AsyncMQTTNetwork {
+    async fn subscribe_to(&self, nbr: i32) -> NetworkResult<()> {
+        self.client
+            .subscribe(format!("hello-rufi/{nbr}/subscriptions"), QoS::AtMostOnce)
+            .await
+            .map_err(|e| e.into())
+    }
+
+    async fn unsubscribe_to(&self, nbr: i32) -> NetworkResult<()> {
+        self.client
+            .unsubscribe(format!("hello-rufi/{nbr}/subscriptions"))
+            .await
+            .map_err(|e| e.into())
+    }
+
     async fn broadcast(&self, source: i32, msg: String) -> NetworkResult<()> {
         self.client
             .publish(
