@@ -1,19 +1,14 @@
-use distributed_gradient::message::Message;
 use rf_core::context::Context;
-use rf_core::export::Export;
-use rf_core::lang::execution::round;
 use rf_core::sensor_id::{sensor, SensorId};
-use rf_core::vm::round_vm::RoundVM;
 use rufi_gradient::gradient;
 use rumqttc::MqttOptions;
 use std::any::Any;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
-use distributed_gradient::mailbox::AsStates;
 use distributed_gradient::mailbox::factory::{MailboxFactory, ProcessingPolicy};
-use distributed_gradient::network::NetworkUpdate;
 use distributed_gradient::network::factory::NetworkFactory;
+use distributed_gradient::platform::Platform;
 
 #[derive(Debug, Default)]
 struct Arguments {
@@ -73,47 +68,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut mqttoptions =
         MqttOptions::new(format!("device#{}", self_id), "test.mosquitto.org", 1883);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
-    let mut network = NetworkFactory::async_mqtt_network(mqttoptions, nbrs).await;
+    let network = NetworkFactory::async_mqtt_network(mqttoptions, nbrs).await;
 
     // Setup the mailbox
-    let mut mailbox = MailboxFactory::from_policy(ProcessingPolicy::MemoryLess);
+    let mailbox = MailboxFactory::from_policy(ProcessingPolicy::MemoryLess);
 
-    loop {
-        //STEP 1: Setup the aggregate program execution
+    let context = Context::new(
+        self_id,
+        local_sensor.clone(),
+        nbr_sensor.clone(),
+        Default::default(),
+    );
 
-        // Retrieve the neighbouring exports from the mailbox
-        let states = mailbox.messages().as_states();
-
-        //STEP 2: Execute a round
-        let context = Context::new(
-            self_id,
-            local_sensor.clone(),
-            nbr_sensor.clone(),
-            states,
-        );
-        println!("CONTEXT: {:?}", context);
-        let mut vm = RoundVM::new(context);
-        vm.new_export_stack();
-        let (mut vm_, result) = round(vm, gradient);
-        let self_export: Export = vm_.export_data().clone();
-        println!("OUTPUT: {}\nEXPORT: {}\n", result, self_export);
-
-        //STEP 3: Publish the export
-        let msg = Message::new(self_id, self_export, std::time::SystemTime::now());
-        let msg_ser = serde_json::to_string(&msg).unwrap();
-        network.send(self_id, msg_ser).await?;
-
-        //STEP 4: Receive the neighbouring exports from the network
-        if let Ok(update) = network.recv().await {
-            match update {
-                NetworkUpdate::Update { msg } => {
-                    let msg: Message = serde_json::from_str(&msg).unwrap();
-                    mailbox.enqueue(msg);
-                }
-                _ => {}
-            }
-        }
-        tokio::time::sleep(Duration::from_secs(2)).await;
-    }
+    // Setup the platform and run the program
+    Platform::new(
+        mailbox,
+        network,
+        context,
+    ).run(gradient).await
 }
 
