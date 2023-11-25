@@ -1,4 +1,3 @@
-use commons::DeviceState;
 use rf_core::context::Context;
 use rf_core::lang::execution::round;
 use rf_core::sensor_id::{sensor, SensorId};
@@ -8,6 +7,8 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::iter;
 use std::rc::Rc;
+use local_gradient::DeviceState;
+
 
 fn main() {
     let devices = vec![1, 2, 3, 4, 5];

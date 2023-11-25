@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    "commons",
     "local-gradient",
     "distributed-gradient",
 ]
