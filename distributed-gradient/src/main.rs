@@ -6,9 +6,9 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
-use distributed_gradient::mailbox::factory::{MailboxFactory, ProcessingPolicy};
-use distributed_gradient::network::factory::NetworkFactory;
-use distributed_gradient::platform::Platform;
+use rf_distributed::mailbox::factory::{MailboxFactory, ProcessingPolicy};
+use rf_distributed::network::factory::NetworkFactory;
+use rf_distributed::platform::Platform;
 
 #[derive(Debug, Default)]
 struct Arguments {

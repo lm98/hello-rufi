@@ -1,5 +1,5 @@
 [package]
-name = "distributed-gradient"
+name = "rf-distributed"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,8 +7,6 @@ edition = "2021"
 
 [dependencies]
 rf-core = "0.3.0"
-rf-distributed = { path = "../rf-distributed" }
-rufi_gradient = "2.0.3"
 tokio = { version = "1.33.0", features = ["full"] }
 async-trait = "0.1.74"
 rumqttc = "0.23.0"
