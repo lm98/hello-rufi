@@ -105,6 +105,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "rf-core",
+ "rf-distributed",
  "rufi_gradient",
  "rumqttc",
  "serde",
@@ -371,6 +372,19 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "rf-distributed"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "rf-core",
+ "rumqttc",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
