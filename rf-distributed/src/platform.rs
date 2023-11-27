@@ -10,6 +10,7 @@ use crate::mailbox::{AsStates, Mailbox};
 use crate::message::Message;
 use crate::network::{Network, NetworkUpdate};
 
+/// This struct represents the platform on which the program is executed
 pub struct Platform {
     mailbox: Box<dyn Mailbox>,
     network: Box<dyn Network>,
@@ -21,7 +22,17 @@ impl Platform {
         Self { mailbox, network, context }
     }
 
-    pub async fn run<P, A>(mut self, program: P) -> Result<(), Box<dyn Error>>
+    /// Runs indefinitely the program on the platform
+    ///
+    /// # Arguments
+    ///
+    /// * `program` - The aggregate program to be executed
+    ///
+    /// # Generic Arguments
+    ///
+    /// * `P` - The type of the aggregate program, it must be a function that takes a [RoundVM] and returns a [RoundVM] and a result of type `A`
+    /// * `A` - The type of the result of the aggregate program
+    pub async fn run_forever<P, A>(mut self, program: P) -> Result<(), Box<dyn Error>>
         where
             P: Fn(RoundVM) -> (RoundVM, A) + Copy,
             A: Clone + 'static + FromStr + Display,
@@ -34,6 +45,23 @@ impl Platform {
 
 }
 
+/// Performs a single step of the execution cycle of an aggregate program
+///
+/// # Arguments
+///
+/// * `mailbox` - The mailbox of the device
+/// * `network` - The network through which the device communicates
+/// * `context` - The context of the device
+/// * `program` - The aggregate program to be executed
+///
+/// # Generic Arguments
+///
+/// * `P` - The type of the aggregate program, it must be a function that takes a [RoundVM] and returns a [RoundVM] and a result of type `A`
+/// * `A` - The type of the result of the aggregate program
+///
+/// # Returns
+///
+/// * `Result<(), Box<dyn Error>>` - The result of the execution
 async fn single_cycle<P, A>(mailbox: &mut Box<dyn Mailbox>, network: &mut Box<dyn Network>, context: Context, program: P) -> Result<(), Box<dyn Error>>
     where
         P: Fn(RoundVM) -> (RoundVM, A),
