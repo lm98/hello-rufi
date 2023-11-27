@@ -85,6 +85,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         mailbox,
         network,
         context,
-    ).run(gradient).await
+    ).run_forever(gradient).await
 }
 
