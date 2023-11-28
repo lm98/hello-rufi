@@ -46,6 +46,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into_iter()
         .filter(|n| (n > &0 && n < &6))
         .collect();
+
+    // Setup the context
     let local_sensor: HashMap<SensorId, Rc<Box<dyn Any>>> = vec![(
         sensor("source"),
         Rc::new(Box::new(is_source) as Box<dyn Any>),
@@ -63,6 +65,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
             .collect(),
     )]);
+    let context = Context::new(
+        self_id,
+        local_sensor.clone(),
+        nbr_sensor.clone(),
+        Default::default(),
+    );
 
     // Setup the MQTT client
     let mut mqttoptions =
@@ -72,13 +80,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Setup the mailbox
     let mailbox = MailboxFactory::from_policy(ProcessingPolicy::MemoryLess);
-
-    let context = Context::new(
-        self_id,
-        local_sensor.clone(),
-        nbr_sensor.clone(),
-        Default::default(),
-    );
 
     // Setup the platform and run the program
     Platform::new(
