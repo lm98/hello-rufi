@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .collect();
     let nbr_sensor: HashMap<SensorId, HashMap<i32, Rc<Box<dyn Any>>>> = HashMap::from([(
         sensor("nbr_range"),
-        nbrs.iter()
+        nbrs.clone().iter()
             .map(|n| {
                 (
                     n.clone(),
@@ -76,7 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut mqttoptions =
         MqttOptions::new(format!("device#{}", self_id), "test.mosquitto.org", 1883);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
-    let network = NetworkFactory::async_mqtt_network(mqttoptions, nbrs).await;
+    let network = NetworkFactory::async_mqtt_network(mqttoptions, nbrs.clone()).await;
 
     // Setup the mailbox
     let mailbox = MailboxFactory::from_policy(ProcessingPolicy::MemoryLess);
@@ -86,6 +86,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         mailbox,
         network,
         context,
+        Some(nbrs),
     ).run_forever(gradient).await
 }
-

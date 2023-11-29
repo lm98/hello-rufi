@@ -15,11 +15,26 @@ pub struct Platform {
     mailbox: Box<dyn Mailbox>,
     network: Box<dyn Network>,
     context: Context,
+    nbrs: Vec<i32>,
 }
 
 impl Platform {
-    pub fn new(mailbox: Box<dyn Mailbox>, network: Box<dyn Network>, context: Context) -> Self {
-        Self { mailbox, network, context }
+    pub fn new(mailbox: Box<dyn Mailbox>, network: Box<dyn Network>, context: Context, nbrs: Option<Vec<i32>>) -> Self {
+        if let Some(nbrs) = nbrs {
+            Self {
+                mailbox,
+                network,
+                context,
+                nbrs,
+            }
+        } else {
+            Self {
+                mailbox,
+                network,
+                context,
+                nbrs: vec![],
+            }
+        }
     }
 
     /// Runs indefinitely the program on the platform
@@ -43,6 +58,13 @@ impl Platform {
         }
     }
 
+    fn add_nbr(&mut self, nbr: i32) {
+        self.nbrs.push(nbr);
+    }
+
+    fn remove_nbr(&mut self, nbr: i32) {
+        self.nbrs.retain(|n| n != &nbr);
+    }
 }
 
 /// Performs a single step of the execution cycle of an aggregate program
