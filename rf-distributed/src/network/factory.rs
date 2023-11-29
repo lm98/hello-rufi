@@ -19,8 +19,8 @@ impl NetworkFactory {
     /// # Returns
     ///
     /// * `Box<dyn Network>` - The network created
-    pub async fn async_mqtt_network(options: MqttOptions, topics: Vec<i32>) -> Box<dyn Network> {
-        Box::new(AsyncMQTTNetwork::new(options, topics).await)
+    pub async fn async_mqtt_network(options: MqttOptions) -> Box<dyn Network> {
+        Box::new(AsyncMQTTNetwork::new(options).await)
     }
 }
 
@@ -30,13 +30,9 @@ struct AsyncMQTTNetwork {
 }
 
 impl AsyncMQTTNetwork {
-    pub async fn new(options: MqttOptions, topics: Vec<i32>) -> Self {
+    pub async fn new(options: MqttOptions) -> Self {
         let (client, mut eventloop) = AsyncClient::new(options, 10);
-        for nbr in topics.clone() {
-            client
-                .subscribe(format!("hello-rufi/{nbr}/subscriptions"), QoS::AtMostOnce)
-                .await.unwrap();
-        }
+
         let (sender, receiver) = tokio::sync::mpsc::channel::<NetworkUpdate>(100);
         tokio::spawn(async move {
             loop {
@@ -56,6 +52,24 @@ impl AsyncMQTTNetwork {
 
 #[async_trait]
 impl Network for AsyncMQTTNetwork {
+    async fn subscribe(&mut self, topics: Vec<i32>) -> NetworkResult<()> {
+        for nbr in topics.clone() {
+            self.client
+                .subscribe(format!("hello-rufi/{nbr}/subscriptions"), QoS::AtMostOnce)
+                .await?;
+        }
+        Ok(())
+    }
+
+    async fn unsubscribe(&mut self, topics: Vec<i32>) -> NetworkResult<()> {
+        for nbr in topics.clone() {
+            self.client
+                .unsubscribe(format!("hello-rufi/{nbr}/subscriptions"))
+                .await?;
+        }
+        Ok(())
+    }
+
     async fn send(&self, source: i32, msg: String) -> NetworkResult<()> {
         self.client
             .publish(
