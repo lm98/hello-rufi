@@ -6,6 +6,7 @@ use rf_core::context::Context;
 use rf_core::export::Export;
 use rf_core::lang::execution::round;
 use rf_core::vm::round_vm::RoundVM;
+use crate::discovery::Discovery;
 use crate::mailbox::{AsStates, Mailbox};
 use crate::message::Message;
 use crate::network::{Network, NetworkUpdate};
@@ -15,25 +16,19 @@ pub struct Platform {
     mailbox: Box<dyn Mailbox>,
     network: Box<dyn Network>,
     context: Context,
-    nbrs: Vec<i32>,
+    discovery: Box<dyn Discovery>,
+    discovered_nbrs: Vec<i32>,
 }
 
 impl Platform {
-    pub fn new(mailbox: Box<dyn Mailbox>, network: Box<dyn Network>, context: Context, nbrs: Option<Vec<i32>>) -> Self {
-        if let Some(nbrs) = nbrs {
-            Self {
-                mailbox,
-                network,
-                context,
-                nbrs,
-            }
-        } else {
-            Self {
-                mailbox,
-                network,
-                context,
-                nbrs: vec![],
-            }
+    /// Creates a new platform
+    pub fn new(mailbox: Box<dyn Mailbox>, network: Box<dyn Network>, context: Context, discovery: Box<dyn Discovery>) -> Self {
+        Platform {
+            mailbox,
+            network,
+            context,
+            discovery,
+            discovered_nbrs: vec![],
         }
     }
 
@@ -53,17 +48,17 @@ impl Platform {
             A: Clone + 'static + FromStr + Display,
     {
         loop {
+            // STEP 1: Discover neighbours
+            let nbrs = self.discovery.discover_neighbors();
+            // STEP 2: Subscribe to the topics of the neighbours
+            let subscriptions : Vec<i32> = nbrs.into_iter().filter(|n| !self.discovered_nbrs.contains(n)).collect();
+            self.network.subscribe(subscriptions.clone()).await?;
+            self.discovered_nbrs.extend(subscriptions);
+
             single_cycle(&mut self.mailbox, &mut self.network, self.context.clone(), program).await?;
+
             tokio::time::sleep(Duration::from_secs(2)).await;
         }
-    }
-
-    fn add_nbr(&mut self, nbr: i32) {
-        self.nbrs.push(nbr);
-    }
-
-    fn remove_nbr(&mut self, nbr: i32) {
-        self.nbrs.retain(|n| n != &nbr);
     }
 }
 
@@ -89,12 +84,10 @@ async fn single_cycle<P, A>(mailbox: &mut Box<dyn Mailbox>, network: &mut Box<dy
         P: Fn(RoundVM) -> (RoundVM, A),
         A: Clone + 'static + FromStr + Display,
 {
-    //STEP 1: Setup the aggregate program execution
-
-    // Retrieve the neighbouring exports from the mailbox
+    //STEP 3: Retrieve the neighbouring exports from the mailbox
     let states = mailbox.messages().as_states();
 
-    //STEP 2: Execute a round
+    //STEP 4: Execute a round
     let context = Context::new(
         context.self_id().clone(),
         context.local_sensors().clone(),
@@ -108,12 +101,12 @@ async fn single_cycle<P, A>(mailbox: &mut Box<dyn Mailbox>, network: &mut Box<dy
     let self_export: Export = vm_.export_data().clone();
     println!("OUTPUT: {}\nEXPORT: {}\n", result, self_export);
 
-    //STEP 3: Publish the export
+    //STEP 5: Publish the export
     let msg = Message::new(vm_.self_id().clone(), self_export, std::time::SystemTime::now());
     let msg_ser = serde_json::to_string(&msg).unwrap();
     network.send(vm_.self_id().clone(), msg_ser).await?;
 
-    //STEP 4: Receive the neighbouring exports from the network
+    //STEP 6: Receive the neighbouring exports from the network
     if let Ok(update) = network.recv().await {
         match update {
             NetworkUpdate::Update { msg } => {
