@@ -6,6 +6,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
+use rf_distributed::discovery::Discovery;
 use rf_distributed::mailbox::factory::{MailboxFactory, ProcessingPolicy};
 use rf_distributed::network::factory::NetworkFactory;
 use rf_distributed::platform::Platform;
@@ -32,6 +33,24 @@ impl Arguments {
     }
 }
 
+struct MockDiscovery(i32);
+
+impl MockDiscovery {
+    pub fn mock_discovery(id: i32) -> Box<dyn Discovery> {
+        Box::new(MockDiscovery(id))
+    }
+}
+
+impl Discovery for MockDiscovery {
+    fn discover_neighbors(&self) -> Vec<i32> {
+        let self_id = self.0;
+        vec![self_id - 1, self_id, self_id + 1]
+            .into_iter()
+            .filter(|n| (n > &0 && n < &6))
+            .collect()
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get arguments from the CLI
@@ -42,10 +61,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /* Set up a simple topology that will be used for these tests.
      *  Topology: [1] -- [2] -- [3] -- [4] -- [5].
      */
-    let nbrs: Vec<i32> = vec![self_id.clone() - 1, self_id.clone(), self_id.clone() + 1]
-        .into_iter()
-        .filter(|n| (n > &0 && n < &6))
-        .collect();
+    let discovery = MockDiscovery::mock_discovery(self_id);
+    let nbrs = discovery.discover_neighbors();
 
     // Setup the context
     let local_sensor: HashMap<SensorId, Rc<Box<dyn Any>>> = vec![(
@@ -86,6 +103,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         mailbox,
         network,
         context,
-        Some(nbrs),
+        discovery,
     ).run_forever(gradient).await
 }
