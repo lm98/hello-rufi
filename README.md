@@ -18,3 +18,4 @@ In order to launch the program and see the output, run:
 ````shell
 docker-compose -f docker-compose.distributed.yml up
 ````
+N.B It may happen that some nodes take longer to output the correct value.
