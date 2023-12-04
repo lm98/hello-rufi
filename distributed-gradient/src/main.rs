@@ -93,8 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut mqttoptions =
         MqttOptions::new(format!("device#{}", self_id), "test.mosquitto.org", 1883);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
-    let mut network = NetworkFactory::async_mqtt_network(mqttoptions).await;
-    network.subscribe(nbrs.clone()).await?;
+    let network = NetworkFactory::async_mqtt_network(mqttoptions, nbrs.clone()).await;
     // Setup the mailbox
     let mailbox = MailboxFactory::from_policy(ProcessingPolicy::MemoryLess);
 
