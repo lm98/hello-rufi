@@ -12,7 +12,7 @@ use crate::message::Message;
 use crate::network::{Network, NetworkUpdate};
 
 /// This struct represents the platform on which the program is executed
-pub struct Platform {
+pub struct RuFiPlatform {
     mailbox: Box<dyn Mailbox>,
     network: Box<dyn Network>,
     context: Context,
@@ -20,10 +20,10 @@ pub struct Platform {
     discovered_nbrs: Vec<i32>,
 }
 
-impl Platform {
+impl RuFiPlatform {
     /// Creates a new platform
     pub fn new(mailbox: Box<dyn Mailbox>, network: Box<dyn Network>, context: Context, discovery: Box<dyn Discovery>) -> Self {
-        Platform {
+        RuFiPlatform {
             mailbox,
             network,
             context,

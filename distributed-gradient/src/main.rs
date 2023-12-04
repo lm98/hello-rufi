@@ -9,7 +9,7 @@ use std::time::Duration;
 use rf_distributed::discovery::Discovery;
 use rf_distributed::mailbox::factory::{MailboxFactory, ProcessingPolicy};
 use rf_distributed::network::factory::NetworkFactory;
-use rf_distributed::platform::Platform;
+use rf_distributed::platform::RuFiPlatform;
 
 #[derive(Debug, Default)]
 struct Arguments {
@@ -99,7 +99,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mailbox = MailboxFactory::from_policy(ProcessingPolicy::MemoryLess);
 
     // Setup the platform and run the program
-    Platform::new(
+    RuFiPlatform::new(
         mailbox,
         network,
         context,
