@@ -6,8 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rf-core = "0.3.0"
-rf-distributed = { path = "../rf-distributed" }
+rufi = { version = "0.1.0", features = ["core", "distributed"] }
 rufi_gradient = "2.0.3"
 tokio = { version = "1.33.0", features = ["full"] }
 async-trait = "0.1.74"

@@ -1,15 +1,15 @@
-use rf_core::context::Context;
-use rf_core::sensor_id::{sensor, SensorId};
+use rufi::core::context::Context;
+use rufi::core::sensor_id::{sensor, SensorId};
 use rufi_gradient::gradient;
 use rumqttc::MqttOptions;
 use std::any::Any;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
-use rf_distributed::discovery::Discovery;
-use rf_distributed::mailbox::factory::{MailboxFactory, ProcessingPolicy};
-use rf_distributed::network::factory::NetworkFactory;
-use rf_distributed::platform::RuFiPlatform;
+use rufi::distributed::discovery::Discovery;
+use rufi::distributed::mailbox::factory::{MailboxFactory, ProcessingPolicy};
+use rufi::distributed::network::factory::NetworkFactory;
+use rufi::distributed::platform::RuFiPlatform;
 
 #[derive(Debug, Default)]
 struct Arguments {
