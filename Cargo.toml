@@ -2,7 +2,6 @@
 members = [
     "local-gradient",
     "distributed-gradient",
-    "rf-distributed",
 ]
 
 resolver = "2"
