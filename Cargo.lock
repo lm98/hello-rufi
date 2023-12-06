@@ -105,7 +105,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "rf-core",
- "rf-distributed",
+ "rf-distributed 0.1.0",
  "rufi_gradient",
  "rumqttc",
  "serde",
@@ -194,7 +194,7 @@ checksum = "a08173bc88b7955d1b3145aa561539096c421ac8debde8cbc3612ec635fee29b"
 name = "local-gradient"
 version = "0.1.0"
 dependencies = [
- "rf-core",
+ "rufi",
  "rufi_gradient",
 ]
 
@@ -388,6 +388,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rf-distributed"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52667c63ef32bce26dbe8e93788aa44a7c16539d8ecfb664ad6618208e9fd6eb"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "rf-core",
+ "rumqttc",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "ring"
 version = "0.17.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -399,6 +414,16 @@ dependencies = [
  "spin",
  "untrusted",
  "windows-sys",
+]
+
+[[package]]
+name = "rufi"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21a141493e31610d29c919b5d1e607cc01196dd4d4ce15519b333d90fa3054e9"
+dependencies = [
+ "rf-core",
+ "rf-distributed 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

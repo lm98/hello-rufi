@@ -1,7 +1,7 @@
-use rf_core::context::Context;
-use rf_core::lang::execution::round;
-use rf_core::sensor_id::{sensor, SensorId};
-use rf_core::vm::round_vm::RoundVM;
+use rufi::core::context::Context;
+use rufi::core::lang::execution::round;
+use rufi::core::sensor_id::{sensor, SensorId};
+use rufi::core::vm::round_vm::RoundVM;
 use rufi_gradient::gradient;
 use std::any::Any;
 use std::collections::HashMap;

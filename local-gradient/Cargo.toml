@@ -6,5 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rf-core = "0.3.0"
+rufi = { version = "0.1.0", features = ["core"] }
 rufi_gradient = "2.0.3"

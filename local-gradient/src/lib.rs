@@ -1,5 +1,5 @@
-use rf_core::export::Export;
-use rf_core::sensor_id::SensorId;
+use rufi::core::export::Export;
+use rufi::core::sensor_id::SensorId;
 use std::any::Any;
 use std::collections::HashMap;
 use std::rc::Rc;
